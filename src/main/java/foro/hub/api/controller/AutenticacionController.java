@@ -1,0 +1,39 @@
+package foro.hub.api.controller;
+
+import foro.hub.api.domain.usuario.Usuario;
+import foro.hub.api.dto.LoginDTO;
+import foro.hub.api.dto.TokenDTO;
+import foro.hub.api.service.TokenService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/login")
+public class AutenticacionController {
+
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private TokenService tokenService;
+
+    @PostMapping
+    public ResponseEntity<TokenDTO> login(@RequestBody LoginDTO loginDTO) {
+        Authentication authToken = new UsernamePasswordAuthenticationToken(
+                loginDTO.username(),
+                loginDTO.password()
+        );
+
+        var usuarioAutenticado = authenticationManager.authenticate(authToken);
+        var tokenJWT = tokenService.generarToken((Usuario) usuarioAutenticado.getPrincipal());
+
+        return ResponseEntity.ok(new TokenDTO(tokenJWT));
+    }
+}
